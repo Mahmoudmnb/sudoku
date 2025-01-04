@@ -81,22 +81,22 @@ scanSquarlyorTwoProbCell(X,Y,SX,EX,SY,EY):-SX>EX,NSX is EX-2,NSY is SY+1,scanSqu
 %! the cell should contain just two probability
 clearTwoCellProb(X,Y,SX,EX,SY,EY):-scanVerticallyForTwoProbCell(X,Y,1),scanHorizontallyForTwoProbCell(X,Y,1),scanSquarlyorTwoProbCell(X,Y,SX,EX,SY,EY).
 % scan square and solve cells that can be solved [SX,EX,SY,EY] is the boundery of the square
-solveSquareInPuzzle(_,_,SY,EY,_):-SY>EY.
-solveSquareInPuzzle(SX,EX,SY,EY,K):-SX=<EX,cell(SX,SY,_,1),NSX is SX+1,solveSquareInPuzzle(NSX,EX,SY,EY,K).
-solveSquareInPuzzle(SX,EX,SY,EY,K):-SX=<EX,cell(SX,SY,R,0),length(R,L),L=:=1,TSX is EX-2,TSY is EY-2,
-                                  clearOneProbCell(SX,SY,TSX,EX,TSY,EY),NSX is SX+1,solveSquareInPuzzle(NSX,EX,SY,EY,1).
-solveSquareInPuzzle(SX,EX,SY,EY,K):-SX=<EX,cell(SX,SY,R,0),length(R,L),L=:=2,TSX is EX-2,TSY is EY-2,NSX is SX+1,
-                                  clearTwoCellProb(SX,SY,TSX,EX,TSY,EY),solveSquareInPuzzle(NSX,EX,SY,EY,1).
-solveSquareInPuzzle(SX,EX,SY,EY,K):-SX=<EX,NSX is SX+1,solveSquareInPuzzle(NSX,EX,SY,EY,K).
-solveSquareInPuzzle(SX,EX,SY,EY,K):-SX>EX,NSX is EX-2,NSY is SY+1,solveSquareInPuzzle(NSX,EX,NSY,EY,K).
+solveSquareInPuzzle(_,_,SY,EY):-SY>EY.
+solveSquareInPuzzle(SX,EX,SY,EY):-SX=<EX,cell(SX,SY,_,1),NSX is SX+1,solveSquareInPuzzle(NSX,EX,SY,EY).
+solveSquareInPuzzle(SX,EX,SY,EY):-SX=<EX,cell(SX,SY,R,0),length(R,L),L=:=1,TSX is EX-2,TSY is EY-2,
+                                  clearOneProbCell(SX,SY,TSX,EX,TSY,EY),NSX is SX+1,solveSquareInPuzzle(NSX,EX,SY,EY).
+solveSquareInPuzzle(SX,EX,SY,EY):-SX=<EX,cell(SX,SY,R,0),length(R,L),L=:=2,TSX is EX-2,TSY is EY-2,NSX is SX+1,
+                                  clearTwoCellProb(SX,SY,TSX,EX,TSY,EY),solveSquareInPuzzle(NSX,EX,SY,EY).
+solveSquareInPuzzle(SX,EX,SY,EY):-SX=<EX,NSX is SX+1,solveSquareInPuzzle(NSX,EX,SY,EY).
+solveSquareInPuzzle(SX,EX,SY,EY):-SX>EX,NSX is EX-2,NSY is SY+1,solveSquareInPuzzle(NSX,EX,NSY,EY).
 % check if the puzzel is solved or not
 isSolved(_,10).
 isSolved(X,Y):- X=<9,cell(X,Y,R,_),length(R,L),L=:=1,NX is X+1,isSolved(NX,Y).
 isSolved(X,Y):- X>9,NX is 1, NY is Y+1,isSolved(NX,NY).
 scan():-       isSolved(1,1).
-scan():-       solveSquareInPuzzle(1,3,1,3,A),solveSquareInPuzzle(4,6,1,3,B),solveSquareInPuzzle(7,9,1,3,C),
-               solveSquareInPuzzle(1,3,4,6,D),solveSquareInPuzzle(4,6,4,6,E),solveSquareInPuzzle(7,9,4,6,F),
-               solveSquareInPuzzle(1,3,7,9,I),solveSquareInPuzzle(4,6,7,9,J),solveSquareInPuzzle(7,9,7,9,K),
+scan():-       solveSquareInPuzzle(1,3,1,3),solveSquareInPuzzle(4,6,1,3),solveSquareInPuzzle(7,9,1,3),
+               solveSquareInPuzzle(1,3,4,6),solveSquareInPuzzle(4,6,4,6),solveSquareInPuzzle(7,9,4,6),
+               solveSquareInPuzzle(1,3,7,9),solveSquareInPuzzle(4,6,7,9),solveSquareInPuzzle(7,9,7,9),
                scan().
 
 solvePuzzle():-fillPuzzleProb(1,1),scan().
