@@ -33,7 +33,7 @@ clearColumnProb(V,X,Y,I):- I =:=Y,NI is I+1,clearColumnProb(V,X,Y,NI).
 clearSquareProb(_,_,_,_,_,SY,EY):-SY>EY.
 clearSquareProb(V,X,Y,SX,EX,SY,EY):-SX=<EX,cell(SX,SY,R,_),removeElement(V,[],R,Res),retract(cell(SX,SY,_,_)),assert(cell(SX,SY,Res,0)),
                                     NSX is SX+1,clearSquareProb(V,X,Y,NSX,EX,SY,EY).
-clearSquareProb(V,X,Y,_,EX,SY,EY):-SY=<EY, NSX is EX-3,NSY is SY+1,clearSquareProb(V,X,Y,NSX,EX,NSY,EY). 
+clearSquareProb(V,X,Y,_,EX,SY,EY):-SY=<EY, NSX is EX-2,NSY is SY+1,clearSquareProb(V,X,Y,NSX,EX,NSY,EY). 
 % clear the value of the cell from the probalility in the column, row and square of the selected cell(X,Y is the position of the selected cell
 %[SX,EX,SY,EY] is the boundary of the square indexes that the cell in located in)
 %! the cell should contain one probability
@@ -73,6 +73,30 @@ scanVerticallyForTwoProbCell(X,Y,I):-NI is I+1,scanVerticallyForTwoProbCell(X,Y,
 scanSquarlyorTwoProbCell(_,_,_,_,SY,EY):-SY>EY.
 scanSquarlyorTwoProbCell(X,Y,SX,EX,SY,EY):-SX=<EX,SX=:=X,SY=:=Y,NSX is SX+1,scanSquarlyorTwoProbCell(X,Y,NSX,EX,SY,EY).
 scanSquarlyorTwoProbCell(X,Y,SX,EX,SY,EY):-SX=<EX,cell(X,Y,R,_),cell(SX,SY,TR,_),isEqual(R,TR),TSX is EX-2,TSY is EY-2,
-                                           clearSquareTwoProb(R,X,Y,SX,SY,TSX,EX,TSY,EY), NSX is SX+1,scanSquarlyorTwoProbCell(X,Y,NSX,EX,SY,EY).
+                                           clearSquareTwoProb(R,X,Y,SX,SY,TSX,EX,TSY,EY),NSX is SX+1,scanSquarlyorTwoProbCell(X,Y,NSX,EX,SY,EY).
 scanSquarlyorTwoProbCell(X,Y,SX,EX,SY,EY):-SX=<EX,NSX is SX+1,scanSquarlyorTwoProbCell(X,Y,NSX,EX,SY,EY).
-scanSquarlyorTwoProbCell(X,Y,SX,EX,SY,EY):-SX>EX,NSX is SX-3,NSY is SY+1,scanSquarlyorTwoProbCell(X,Y,NSX,EX,NSY,EY).
+scanSquarlyorTwoProbCell(X,Y,SX,EX,SY,EY):-SX>EX,NSX is EX-2,NSY is SY+1,scanSquarlyorTwoProbCell(X,Y,NSX,EX,NSY,EY).
+% clear the two of the cell probability from the probalility in the column, row and square of the selected cell(X,Y is the position of the selected cell
+%[SX,EX,SY,EY] is the boundary of the square indexes that the cell in located in)
+%! the cell should contain just two probability
+clearTwoCellProb(X,Y,SX,EX,SY,EY):-scanVerticallyForTwoProbCell(X,Y,1),scanHorizontallyForTwoProbCell(X,Y,1),scanSquarlyorTwoProbCell(X,Y,SX,EX,SY,EY).
+% scan square and solve cells that can be solved [SX,EX,SY,EY] is the boundery of the square
+solveSquareInPuzzle(_,_,SY,EY,_):-SY>EY.
+solveSquareInPuzzle(SX,EX,SY,EY,K):-SX=<EX,cell(SX,SY,_,1),NSX is SX+1,solveSquareInPuzzle(NSX,EX,SY,EY,K).
+solveSquareInPuzzle(SX,EX,SY,EY,K):-SX=<EX,cell(SX,SY,R,0),length(R,L),L=:=1,TSX is EX-2,TSY is EY-2,
+                                  clearOneProbCell(SX,SY,TSX,EX,TSY,EY),NSX is SX+1,solveSquareInPuzzle(NSX,EX,SY,EY,1).
+solveSquareInPuzzle(SX,EX,SY,EY,K):-SX=<EX,cell(SX,SY,R,0),length(R,L),L=:=2,TSX is EX-2,TSY is EY-2,NSX is SX+1,
+                                  clearTwoCellProb(SX,SY,TSX,EX,TSY,EY),solveSquareInPuzzle(NSX,EX,SY,EY,1).
+solveSquareInPuzzle(SX,EX,SY,EY,K):-SX=<EX,NSX is SX+1,solveSquareInPuzzle(NSX,EX,SY,EY,K).
+solveSquareInPuzzle(SX,EX,SY,EY,K):-SX>EX,NSX is EX-2,NSY is SY+1,solveSquareInPuzzle(NSX,EX,NSY,EY,K).
+% check if the puzzel is solved or not
+isSolved(_,10).
+isSolved(X,Y):- X=<9,cell(X,Y,R,_),length(R,L),L=:=1,NX is X+1,isSolved(NX,Y).
+isSolved(X,Y):- X>9,NX is 1, NY is Y+1,isSolved(NX,NY).
+scan():-       isSolved(1,1).
+scan():-       solveSquareInPuzzle(1,3,1,3,A),solveSquareInPuzzle(4,6,1,3,B),solveSquareInPuzzle(7,9,1,3,C),
+               solveSquareInPuzzle(1,3,4,6,D),solveSquareInPuzzle(4,6,4,6,E),solveSquareInPuzzle(7,9,4,6,F),
+               solveSquareInPuzzle(1,3,7,9,I),solveSquareInPuzzle(4,6,7,9,J),solveSquareInPuzzle(7,9,7,9,K),
+               scan().
+
+solvePuzzle():-fillPuzzleProb(1,1),scan().
