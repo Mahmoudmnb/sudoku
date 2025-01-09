@@ -12,6 +12,10 @@ removeElements([H|T],R,F):-removeElement(H,[],R,F1),removeElements(T,F1,F).
 % check if the two list are equal
 isEqual([],[]).
 isEqual([H|T],[H1|T1]):-H=:=H1,isEqual(T,T1).
+% check if the list is contains V
+contain(V,[H]):-H=:=V.
+contain(V,[H|_]):-H=:=V.
+contain(V,[_|T]):-contain(V,T).
 % fill the cell with all probability(1 -> 9) (X,Y the position of the cell,N is an index should be one , L is list of all probability)
 fillProb(X,Y,10,L):-assert(cell(X,Y,L,0)).
 fillProb(X,Y,N,L) :- append(L,[N],R), NN is N+1, fillProb(X,Y,NN,R).
@@ -70,24 +74,48 @@ scanVerticallyForTwoProbCell(X,Y,I):- I=\=Y,cell(X,Y,R,_),cell(X,I,TR,_),isEqual
 scanVerticallyForTwoProbCell(X,Y,I):-NI is I+1,scanVerticallyForTwoProbCell(X,Y,NI).
 % scan square to check if there any cell contain the same two probabilty of the cell in index [X,Y] and if there any cell reomve this two probability from the other cells in this column
 %[X,Y] is the index of the cell to compare with its probability ,[SX,EX,SY,EY] is the boundary of the square
-scanSquarlyorTwoProbCell(_,_,_,_,SY,EY):-SY>EY.
-scanSquarlyorTwoProbCell(X,Y,SX,EX,SY,EY):-SX=<EX,SX=:=X,SY=:=Y,NSX is SX+1,scanSquarlyorTwoProbCell(X,Y,NSX,EX,SY,EY).
-scanSquarlyorTwoProbCell(X,Y,SX,EX,SY,EY):-SX=<EX,cell(X,Y,R,_),cell(SX,SY,TR,_),isEqual(R,TR),TSX is EX-2,TSY is EY-2,
-                                           clearSquareTwoProb(R,X,Y,SX,SY,TSX,EX,TSY,EY),NSX is SX+1,scanSquarlyorTwoProbCell(X,Y,NSX,EX,SY,EY).
-scanSquarlyorTwoProbCell(X,Y,SX,EX,SY,EY):-SX=<EX,NSX is SX+1,scanSquarlyorTwoProbCell(X,Y,NSX,EX,SY,EY).
-scanSquarlyorTwoProbCell(X,Y,SX,EX,SY,EY):-SX>EX,NSX is EX-2,NSY is SY+1,scanSquarlyorTwoProbCell(X,Y,NSX,EX,NSY,EY).
+scanSquarlyForTwoProbCell(_,_,_,_,SY,EY):-SY>EY.
+scanSquarlyForTwoProbCell(X,Y,SX,EX,SY,EY):-SX=<EX,SX=:=X,SY=:=Y,NSX is SX+1,scanSquarlyForTwoProbCell(X,Y,NSX,EX,SY,EY).
+scanSquarlyForTwoProbCell(X,Y,SX,EX,SY,EY):-SX=<EX,cell(X,Y,R,_),cell(SX,SY,TR,_),isEqual(R,TR),TSX is EX-2,TSY is EY-2,
+                                           clearSquareTwoProb(R,X,Y,SX,SY,TSX,EX,TSY,EY),NSX is SX+1,scanSquarlyForTwoProbCell(X,Y,NSX,EX,SY,EY).
+scanSquarlyForTwoProbCell(X,Y,SX,EX,SY,EY):-SX=<EX,NSX is SX+1,scanSquarlyForTwoProbCell(X,Y,NSX,EX,SY,EY).
+scanSquarlyForTwoProbCell(X,Y,SX,EX,SY,EY):-SX>EX,NSX is EX-2,NSY is SY+1,scanSquarlyForTwoProbCell(X,Y,NSX,EX,NSY,EY).
 % clear the two of the cell probability from the probalility in the column, row and square of the selected cell(X,Y is the position of the selected cell
 %[SX,EX,SY,EY] is the boundary of the square indexes that the cell in located in)
 %! the cell should contain just two probability
-clearTwoCellProb(X,Y,SX,EX,SY,EY):-scanVerticallyForTwoProbCell(X,Y,1),scanHorizontallyForTwoProbCell(X,Y,1),scanSquarlyorTwoProbCell(X,Y,SX,EX,SY,EY).
+clearTwoCellProb(X,Y,SX,EX,SY,EY):-scanVerticallyForTwoProbCell(X,Y,1),scanHorizontallyForTwoProbCell(X,Y,1),scanSquarlyForTwoProbCell(X,Y,SX,EX,SY,EY).
+% check if v is founded in the other cells in row prob and return false if founded and true if not [X,Y index of the cell to ignore , I is an index]
+checkIfValueIsUniqeHorzontally(_,_,_,10).
+checkIfValueIsUniqeHorzontally(X,Y,V,I):-I=:=X,NI is I+1,checkIfValueIsUniqeHorzontally(X,Y,V,NI).
+checkIfValueIsUniqeHorzontally(_,Y,V,I):-cell(I,Y,R,_),contain(V,R),1=:=2.
+checkIfValueIsUniqeHorzontally(X,Y,V,I):-cell(I,Y,R,_),not(contain(V,R)),NI is I+1,checkIfValueIsUniqeHorzontally(X,Y,V,NI).
+% check if v is founded in the other cells in column prob and return false if founded and true if not [X,Y index of the cell to ignore , I is an index]
+checkIfValueIsUniqeVertically(_,_,_,10).
+checkIfValueIsUniqeVertically(X,Y,V,I):-I=:=Y,NI is I+1,checkIfValueIsUniqeVertically(X,Y,V,NI).
+checkIfValueIsUniqeVertically(X,_,V,I):-cell(X,I,R,_),contain(V,R),1=:=2.
+checkIfValueIsUniqeVertically(X,Y,V,I):-cell(X,I,R,_),not(contain(V,R)),NI is I+1,checkIfValueIsUniqeVertically(X,Y,V,NI).
+% check if v is founded in the other cells in square prob and return false if founded and true if not [X,Y index of the cell to ignore , I is an index,(SX,SY,EX,EY) is the boundiry of the square]
+checkIfValueIsUniqeSquarly(_,_,_,_,_,SY,EY):-SY>EY.
+checkIfValueIsUniqeSquarly(X,Y,V,SX,EX,SY,EY):-SX=<EX,X=:=SX,Y=:=SY,NSX is SX+1,checkIfValueIsUniqeSquarly(X,Y,V,NSX,EX,SY,EY).
+checkIfValueIsUniqeSquarly(_,_,V,SX,EX,SY,_):-SX=<EX,cell(SX,SY,R,_),contain(V,R),1=:=2.
+checkIfValueIsUniqeSquarly(X,Y,V,SX,EX,SY,EY):-SX=<EX,cell(SX,SY,R,_),not(contain(V,R)),NSX is SX+1,checkIfValueIsUniqeSquarly(X,Y,V,NSX,EX,SY,EY).
+checkIfValueIsUniqeSquarly(X,Y,V,SX,EX,SY,EY):-SX>EX,NSY is SY+1,NSX is EX-2,checkIfValueIsUniqeSquarly(X,Y,V,NSX,EX,NSY,EY).
+%scan to check if the any uniqu prob in the cell and delete the other probs
+scanForUniqeCell(_,_,_,_,_,_,[]).                       
+scanForUniqeCell(X,Y,SX,EX,SY,EY,[V|_]):-checkIfValueIsUniqeSquarly(X,Y,V,SX,EX,SY,EY),retract(cell(X,Y,_,_)),assert(cell(X,Y,[V],0)).
+scanForUniqeCell(X,Y,_,_,_,_,[V|_]):-checkIfValueIsUniqeVertically(X,Y,V,1),retract(cell(X,Y,_,_)),assert(cell(X,Y,[V],0)).
+scanForUniqeCell(X,Y,_,_,_,_,[V|_]):-checkIfValueIsUniqeHorzontally(X,Y,V,1),retract(cell(X,Y,_,_)),assert(cell(X,Y,[V],0)).
+scanForUniqeCell(X,Y,SX,EX,SY,EY,[_|T]):-scanForUniqeCell(X,Y,SX,EX,SY,EY,T).
+% solve the cells that contain uniqu probability
+solveUniqeCellProb(X,Y,SX,EX,SY,EY):- cell(X,Y,R,_),scanForUniqeCell(X,Y,SX,EX,SY,EY,R).
 % scan square and solve cells that can be solved [SX,EX,SY,EY] is the boundery of the square
 solveSquareInPuzzle(_,_,SY,EY):-SY>EY.
 solveSquareInPuzzle(SX,EX,SY,EY):-SX=<EX,cell(SX,SY,_,1),NSX is SX+1,solveSquareInPuzzle(NSX,EX,SY,EY).
 solveSquareInPuzzle(SX,EX,SY,EY):-SX=<EX,cell(SX,SY,R,0),length(R,L),L=:=1,TSX is EX-2,TSY is EY-2,
                                   clearOneProbCell(SX,SY,TSX,EX,TSY,EY),NSX is SX+1,solveSquareInPuzzle(NSX,EX,SY,EY).
 solveSquareInPuzzle(SX,EX,SY,EY):-SX=<EX,cell(SX,SY,R,0),length(R,L),L=:=2,TSX is EX-2,TSY is EY-2,NSX is SX+1,
-                                  clearTwoCellProb(SX,SY,TSX,EX,TSY,EY),solveSquareInPuzzle(NSX,EX,SY,EY).
-solveSquareInPuzzle(SX,EX,SY,EY):-SX=<EX,NSX is SX+1,solveSquareInPuzzle(NSX,EX,SY,EY).
+                                  clearTwoCellProb(SX,SY,TSX,EX,TSY,EY),TTSX is EX-2,TTSY is EY-2,solveUniqeCellProb(SX,SY,TTSX,EX,TTSY,EY),solveSquareInPuzzle(NSX,EX,SY,EY).
+solveSquareInPuzzle(SX,EX,SY,EY):-SX=<EX,NSX is SX+1,TTSX is EX-2,TTSY is EY-2,solveUniqeCellProb(SX,SY,TTSX,EX,TTSY,EY),solveSquareInPuzzle(NSX,EX,SY,EY).
 solveSquareInPuzzle(SX,EX,SY,EY):-SX>EX,NSX is EX-2,NSY is SY+1,solveSquareInPuzzle(NSX,EX,NSY,EY).
 % check if the puzzel is solved or not
 isSolved(_,10).
@@ -98,5 +126,5 @@ scan():-       solveSquareInPuzzle(1,3,1,3),solveSquareInPuzzle(4,6,1,3),solveSq
                solveSquareInPuzzle(1,3,4,6),solveSquareInPuzzle(4,6,4,6),solveSquareInPuzzle(7,9,4,6),
                solveSquareInPuzzle(1,3,7,9),solveSquareInPuzzle(4,6,7,9),solveSquareInPuzzle(7,9,7,9),
                scan().
-
+% solve the puzzle
 solvePuzzle():-fillPuzzleProb(1,1),scan().

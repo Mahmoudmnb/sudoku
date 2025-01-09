@@ -15,4 +15,3 @@ assert(cell(9,7,[5],0)).
 assert(cell(1,8,[2],0)).
 assert(cell(4,8,[7],0)).
 assert(cell(8,9,[1],0)).
-
