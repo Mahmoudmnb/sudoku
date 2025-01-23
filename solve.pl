@@ -20,6 +20,11 @@ contain(V,[_|T]):-contain(V,T).
 containList([],_):-1=:=2.
 containList([H|_],L):-contain(H,L).
 containList([_|T],L):-containList(T,L).
+% calculate count of matching number between two list
+countOfMatching([],_,R,R):-!.
+countOfMatching(_,[],R,R):-!.
+countOfMatching([H|T],[H1|T1],R,F):-H1=:=H,NR is R+1,countOfMatching(T,T1,NR,F),!.
+countOfMatching([_|T],[_|T1],R,F):-countOfMatching(T,T1,R,F),!.
 % fill the cell with all probability(1 -> 9) (X,Y the position of the cell,N is an index should be one , L is list of all probability)
 fillProb(X,Y,10,L):-assert(cell(X,Y,L,0)).
 fillProb(X,Y,N,L) :- append(L,[N],R), NN is N+1, fillProb(X,Y,NN,R).
